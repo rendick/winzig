@@ -11,9 +11,12 @@ pico_sdk_init()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_subdirectory(lib/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
+
 add_executable(winzig
     src/winzig.cpp
     src/api.cpp
+    hw_config.c
 )
 
 file(GLOB LUA_SOURCE "lib/lua/*.c")
@@ -31,4 +34,4 @@ pico_enable_stdio_usb(winzig 1)
 pico_enable_stdio_uart(winzig 1)
 pico_add_extra_outputs(winzig)
 
-target_link_libraries(winzig pico_stdlib pico_ssd1306 hardware_i2c lua)
+target_link_libraries(winzig pico_stdlib pico_ssd1306 hardware_i2c lua FatFs_SPI)
