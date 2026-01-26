@@ -156,18 +156,12 @@ void parse_dir(){
 		if (fno.fname[0] != 0){
 			printf("File: %s\n", fno.fname);
 		}
-	} hile(fno.fname[0] != 0);
+	} while(fno.fname[0] != 0);
 
 	f_closedir(&dir);
 }
 
 int main() {
-	// const char *l_test =
-	// "for i = 10, 15, 1\n"
-	// "do\n"
-	// "draw_pixel(i, 40)\n"
-	// "end\n";
-
 	char l_test[1024];
 	l_test[0] = '\0';
 
