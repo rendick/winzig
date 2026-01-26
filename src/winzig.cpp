@@ -164,14 +164,14 @@ int main() {
 	gpio_pull_up(MOD_BTN);
 
 	SSD1306 display = SSD1306(i2c0, 0x3C, Size::W128xH64);
-	lua_State *L = luaL_newstate();
+	lua_State* L = luaL_newstate();
 	luaL_openlibs(L);
 
 	reg_lua_api(L, &display);
 	display.clear();
 	luaL_loadbuffer(L, l_test, strlen(l_test), "test");
 
-	lua_pcall(L, 0,0,0);
+	lua_pcall(L, 0, 0, 0);
 	// luaL_dofile(L, "test.lua");
 	display.sendBuffer();
 
