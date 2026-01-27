@@ -5,9 +5,9 @@ extern "C" {
 
 #include <hardware/gpio.h>
 
-#include "shapeRenderer/ShapeRenderer.h"
 #include "api.h"
 #include "config.h"
+#include "shapeRenderer/ShapeRenderer.h"
 #include "ssd1306.h"
 
 using namespace pico_ssd1306;
