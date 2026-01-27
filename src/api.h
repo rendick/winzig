@@ -1,7 +1,7 @@
 #pragma once
 
 extern "C" {
-	#include "lua.h"
+#include "lua.h"
 }
 
 #include "ssd1306.h"

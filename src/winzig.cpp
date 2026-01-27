@@ -25,14 +25,14 @@ extern "C" {
 
 using namespace pico_ssd1306;
 
-#define SCREEN_WIDTH 127
+#define SCREEN_WIDTH  127
 #define SCREEN_HEIGHT 64
 
 #define MOD_BTN 13
 #define L_ARROW 14
 #define R_ARROW 15
 
-#define BALL_SIZE 1
+#define BALL_SIZE     1
 #define RACKET_HEIGHT 1
 
 #define X_BALL_POS (SCREEN_WIDTH - 32) >> 1
@@ -43,10 +43,11 @@ int x1 = X_BALL_POS, x2 = Y_BALL_POS;
 float ball_x = SCREEN_WIDTH / 2.0, ball_y = 10.0;
 float ball_speed_x = 1.0, ball_speed_y = 1.0;
 
-void pong_game(pico_ssd1306::SSD1306& display);
-void menu(pico_ssd1306::SSD1306& display);
+void pong_game(pico_ssd1306::SSD1306 &display);
+void menu(pico_ssd1306::SSD1306 &display);
 
-void pong_game(pico_ssd1306::SSD1306& display) {
+void pong_game(pico_ssd1306::SSD1306 &display)
+{
 	srand(time(NULL));
 	int status = 1;
 
@@ -65,7 +66,8 @@ void pong_game(pico_ssd1306::SSD1306& display) {
 		if ((int)ball_x == 0 || (int)ball_x == SCREEN_WIDTH)
 			ball_speed_x = -ball_speed_x;
 
-		if ((int)ball_y == 0) ball_speed_y = -ball_speed_y;
+		if ((int)ball_y == 0)
+			ball_speed_y = -ball_speed_y;
 
 		if ((int)ball_y == SCREEN_HEIGHT - RACKET_HEIGHT - BALL_SIZE) {
 			if ((int)ball_x >= x1 && (int)ball_x <= x2) {
@@ -77,7 +79,7 @@ void pong_game(pico_ssd1306::SSD1306& display) {
 				float angle = max_angle * offset;
 
 				float speed = sqrt(ball_speed_x * ball_speed_x +
-						   ball_speed_y * ball_speed_y);
+				                   ball_speed_y * ball_speed_y);
 
 				ball_speed_x = speed * sin(angle);
 				ball_speed_y = -speed * cos(angle);
@@ -114,7 +116,8 @@ void pong_game(pico_ssd1306::SSD1306& display) {
 				hold_time += 10;
 				printf("hold time: %d\n", hold_time);
 
-				if (hold_time >= 500) break;
+				if (hold_time >= 500)
+					break;
 			}
 			if (hold_time >= 500) {
 				status = 0;
@@ -127,11 +130,12 @@ void pong_game(pico_ssd1306::SSD1306& display) {
 	return;
 }
 
-void menu(pico_ssd1306::SSD1306& display) {
+void menu(pico_ssd1306::SSD1306 &display)
+{
 	score = 0;
 	display.clear();
 	drawText(&display, font_5x8, "Press right arrow to start", 0,
-		 SCREEN_HEIGHT / 2);
+	         SCREEN_HEIGHT / 2);
 	display.sendBuffer();
 
 	while (gpio_get(R_ARROW) != 0) {
@@ -141,27 +145,29 @@ void menu(pico_ssd1306::SSD1306& display) {
 	pong_game(display);
 }
 
-void parse_dir(){
+void parse_dir()
+{
 	DIR dir;
 	FILINFO fno;
 	FRESULT fr;
 
 	fr = f_opendir(&dir, "0:");
-	if (fr != FR_OK){
+	if (fr != FR_OK) {
 		printf("ERROR: Could not open directory (%d)\n", fr);
 	}
 
 	do {
 		f_readdir(&dir, &fno);
-		if (fno.fname[0] != 0){
+		if (fno.fname[0] != 0) {
 			printf("File: %s\n", fno.fname);
 		}
-	} while(fno.fname[0] != 0);
+	} while (fno.fname[0] != 0);
 
 	f_closedir(&dir);
 }
 
-int main() {
+int main(void)
+{
 	char l_test[1024];
 	l_test[0] = '\0';
 
@@ -185,7 +191,6 @@ int main() {
 	if (!sd_init_driver()) {
 		printf("ERROR: Could not initialize SD card\r\n");
 	}
-
 
 	fr = f_mount(&fs, "0:", 1);
 	if (fr != FR_OK) {
@@ -256,7 +261,7 @@ int main() {
 	gpio_pull_up(MOD_BTN);
 
 	SSD1306 display = SSD1306(i2c0, 0x3C, Size::W128xH64);
-	lua_State* L = luaL_newstate();
+	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
 
 	reg_lua_api(L, &display);
