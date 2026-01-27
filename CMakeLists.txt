@@ -15,7 +15,8 @@ add_subdirectory(lib/no-OS-FatFS-SD-SPI-RPi-Pico/FatFs_SPI build)
 
 add_executable(winzig
     src/winzig.cpp
-    src/api.cpp
+    src/api/api.cpp
+    src/sd/sd.cpp
     hw_config.c
 )
 
@@ -27,6 +28,8 @@ target_compile_definitions(lua PUBLIC LUA_32BITS)
 add_subdirectory(lib/pico-ssd1306)
 
 target_include_directories(winzig PRIVATE 
+	${CMAKE_SOURCE_DIR}
+	${CMAKE_SOURCE_DIR}/src
 	${CMAKE_SOURCE_DIR}/lib/pico-ssd1306
 )
 
