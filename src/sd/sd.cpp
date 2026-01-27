@@ -14,7 +14,7 @@ FATFS fs;
 FILINFO fno;
 FIL fil;
 int ret;
-char buf[100];
+char buf[512];
 
 void init_sd_card()
 {
@@ -82,4 +82,3 @@ void read_sd_file(char *filename, char *l_test)
 
 	f_unmount("0:");
 }
-

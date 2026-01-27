@@ -12,10 +12,10 @@ extern "C" {
 #include <string.h>
 
 #include "api/api.h"
-#include "sd/sd.h"
 #include "config.h"
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"
+#include "sd/sd.h"
 #include "shapeRenderer/ShapeRenderer.h"
 #include "ssd1306.h"
 #include "textRenderer/5x8_font.h"
@@ -131,7 +131,7 @@ void menu(pico_ssd1306::SSD1306 &display)
 
 int main(void)
 {
-	char l_test[1024];
+	char l_test[4096];
 	l_test[0] = '\0';
 
 	stdio_init_all();
@@ -153,6 +153,11 @@ int main(void)
 	gpio_pull_up(21);
 	gpio_pull_up(20);
 
+	SSD1306 display = SSD1306(i2c0, 0x3C, Size::W128xH64);
+	display.clear();
+	display.sendBuffer();
+	display.setOrientation(0);
+
 	gpio_init(R_ARROW);
 	gpio_set_dir(R_ARROW, GPIO_IN);
 	gpio_pull_up(R_ARROW);
@@ -165,22 +170,20 @@ int main(void)
 	gpio_set_dir(MOD_BTN, GPIO_IN);
 	gpio_pull_up(MOD_BTN);
 
-	SSD1306 display = SSD1306(i2c0, 0x3C, Size::W128xH64);
 	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
 
 	reg_lua_api(L, &display);
-	display.clear();
-	luaL_loadbuffer(L, l_test, strlen(l_test), "test");
-
-	lua_pcall(L, 0, 0, 0);
-	display.sendBuffer();
-
-	display.setOrientation(0);
-
-	sleep_ms(2000);
 
 	while (1) {
-		menu(display);
+		display.clear();
+		luaL_loadbuffer(L, l_test, strlen(l_test), "test");
+
+		lua_pcall(L, 0, 0, 0);
+
+		display.sendBuffer();
+
+		sleep_ms(16);
+		// menu (display);
 	}
 }
