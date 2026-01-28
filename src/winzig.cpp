@@ -174,10 +174,13 @@ int main(void)
 	luaL_openlibs(L);
 
 	reg_lua_api(L, &display);
+	reg_macros(L);
 
 	while (1) {
 		display.clear();
-		luaL_loadbuffer(L, l_test, strlen(l_test), "test");
+		if (luaL_loadbuffer(L, l_test, strlen(l_test), "test") != LUA_OK){
+			printf("LUA ERROR: %s\n", lua_tostring(L, -1));
+		}
 
 		lua_pcall(L, 0, 0, 0);
 
