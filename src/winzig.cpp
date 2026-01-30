@@ -144,7 +144,7 @@ int main(void)
 	printf("WINZIG\n");
 
 	init_sd_card();
-	parse_sd_dir();
+	parse_sd_dir("0:");
 	read_sd_file((char *)"test.txt", l_test);
 
 	i2c_init(i2c0, 1000000);
