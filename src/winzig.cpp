@@ -23,6 +23,8 @@ extern "C" {
 
 using namespace pico_ssd1306;
 
+#define ARRAY_LENGTH(x) (sizeof(x) / sizeof((x)[0]))
+
 int score = 0;
 int x1 = X_BALL_POS, x2 = Y_BALL_POS;
 float ball_x = SCREEN_WIDTH / 2.0, ball_y = 10.0;
@@ -114,19 +116,80 @@ void pong_game(pico_ssd1306::SSD1306 &display)
 	return;
 }
 
+char *games[] = {"Tetris", "Pong", "World", "Test", "Game", "Dark"};
+
+int mark_x = SCREEN_WIDTH - 12 - 2;
+int mark_y = 2;
+
+int text_x = 5;
+int text_y = 2;
+
+int range = 3;
+int mark = 0;
+int skip = 0;
+
 void menu(pico_ssd1306::SSD1306 &display)
 {
-	score = 0;
-	display.clear();
-	drawText(&display, font_5x8, "Press right arrow to start", 0,
-	         SCREEN_HEIGHT / 2);
-	display.sendBuffer();
+	if (range > ARRAY_LENGTH(games)) {
+		range = ARRAY_LENGTH(games);
+	}
 
-	while (gpio_get(R_ARROW) != 0) {
+	display.clear();
+
+	if (gpio_get(R_ARROW) == 0) {
+		if (mark < ARRAY_LENGTH(games) - 1) {
+			mark++;
+			mark_y += 22;
+			sleep_ms(200);
+		}
+
+		if (mark % 3 == 0 && mark < ARRAY_LENGTH(games)) {
+			mark_y = 2;
+			range += 3;
+			skip += 3;
+			sleep_ms(200);
+		}
 		sleep_ms(10);
 	}
 
-	pong_game(display);
+	if (gpio_get(L_ARROW) == 0) {
+		if (mark % 3 == 0 && mark > 0) {
+			mark_y = 46;
+			range -= 3;
+			skip -= 3;
+			mark--;
+		} else if (mark > 0) {
+			mark--;
+			mark_y -= 22;
+			sleep_ms(200);
+		}
+
+		sleep_ms(10);
+	}
+
+	if (gpio_get(MOD_BTN) == 0) {
+		printf("Start: %s\n", games[mark]);
+		sleep_ms(200);
+	}
+
+	printf("from %d to %d\n", skip, range);
+	printf("range = %d\n", range);
+
+	for (int i = 0; i < range; i++) {
+		if (i >= skip && i < range) {
+			printf("[%d] [%d] %s\n", i, mark, games[i]);
+			drawText(&display, font_12x16, games[i], 5, text_y);
+			text_y += 22;
+		}
+	}
+
+	drawText(&display, font_12x16, "*", mark_x, mark_y);
+
+	drawLine(&display, 0, 20, SCREEN_WIDTH, 20);
+	drawLine(&display, 0, 42, SCREEN_WIDTH, 42);
+	display.sendBuffer();
+
+	text_y = 2;
 }
 
 int main(void)
@@ -143,9 +206,9 @@ int main(void)
 
 	printf("WINZIG\n");
 
-	init_sd_card();
-	parse_sd_dir("0:");
-	read_sd_file((char *)"test.txt", l_test);
+	// init_sd_card();
+	// parse_sd_dir("0:");
+	// read_sd_file((char *)"test.txt", l_test);
 
 	i2c_init(i2c0, 1000000);
 	gpio_set_function(21, GPIO_FUNC_I2C);
@@ -177,16 +240,16 @@ int main(void)
 	reg_macros(L);
 
 	while (1) {
-		display.clear();
-		if (luaL_loadbuffer(L, l_test, strlen(l_test), "test") != LUA_OK){
-			printf("LUA ERROR: %s\n", lua_tostring(L, -1));
-		}
-
-		lua_pcall(L, 0, 0, 0);
-
-		display.sendBuffer();
-
-		sleep_ms(16);
-		// menu (display);
+		// display.clear();
+		// if (luaL_loadbuffer(L, l_test, strlen(l_test), "test") !=
+		// LUA_OK){ 	printf("LUA ERROR: %s\n", lua_tostring(L, -1));
+		// }
+		//
+		// lua_pcall(L, 0, 0, 0);
+		//
+		// display.sendBuffer();
+		//
+		// sleep_ms(16);
+		menu(display);
 	}
 }
