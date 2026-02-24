@@ -6,5 +6,7 @@
 #include "config.h"
 
 void init_sd_card();
-void parse_sd_dir(char *path);
+
+void parse_sd_dir(char exist_files[][128], int *count);
+
 void read_sd_file(char *filename, char *l_test);

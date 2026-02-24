@@ -5,8 +5,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "f_util.h"
+
 #include "config.h"
 #include "ff.h"
+#include "hw_config.h"
 #include "sd_card.h"
 
 FRESULT fr;
@@ -16,68 +19,64 @@ FIL fil;
 int ret;
 char buf[512];
 
+sd_card_t *pSD = sd_get_by_num(0);
 void init_sd_card()
 {
 	if (!sd_init_driver()) {
-		printf("ERROR: Could not initialize SD card\r\n");
-	} else {
-		printf("SD: Initialized successfully\n");
+		printf("SD init failure\n");
+		while (1)
+			;
 	}
+	sleep_ms(250);
 
-	fr = f_mount(&fs, "0:", 1);
+	FRESULT fr = f_mount(&pSD->fatfs, pSD->pcName, 1);
 	if (fr != FR_OK) {
-		printf("ERROR: Could not mount filesystem (%d)\r\n", fr);
-	} else {
-		printf("SD: Mounted successfully\n");
+		printf("1: ERROR: %s (%d)\r\n", FRESULT_str(fr), fr);
+		return;
 	}
 }
 
-void parse_sd_dir(char *path)
+void parse_sd_dir(char exist_files[][128], int *count)
 {
 	DIR dir;
 	FILINFO fno;
 	FRESULT fr;
 
-	fr = f_opendir(&dir, path);
+	fr = f_opendir(&dir, "0:");
 	if (fr != FR_OK) {
-		printf("SD ERROR: Could not open directory (%d)\n", fr);
-	} else {
-		printf("SD: %s opened successfully", path);
+		printf("2: ERROR: %s (%d)\r\n", FRESULT_str(fr), fr);
 	}
 
+	int i = 0;
 	do {
 		f_readdir(&dir, &fno);
 		if (fno.fname[0] != 0) {
 			printf("File: %s\n", fno.fname);
+			strcpy(exist_files[i], fno.fname);
+			i++;
 		}
 	} while (fno.fname[0] != 0);
 
 	f_closedir(&dir);
+	*count = i;
 }
 
 void read_sd_file(char *filename, char *l_test)
 {
+	l_test[0] = '\0';
+	buf[0] = '\0';
 	fr = f_open(&fil, filename, FA_READ);
 	if (fr != FR_OK) {
-		printf("ERROR: Could not open file (%d)\r\n", fr);
-	} else {
-		printf("SD: %s opened successfully\n", filename);
+		printf("3: ERROR: %s (%d)\r\n", FRESULT_str(fr), fr);
+		return;
 	}
 
-	printf("Reading from file: %s\n", filename);
 	while (f_gets(buf, sizeof(buf), &fil)) {
 		strcat(l_test, buf);
 	}
-	printf("\r\n---\r\n");
+
+
+	f_close(&fil);
 
 	printf("LTEST: %s\n", l_test);
-
-	fr = f_close(&fil);
-	if (fr != FR_OK) {
-		printf("ERROR: Could not close file (%d)\r\n", fr);
-	} else {
-		printf("SD: %s closed successfully\n", filename);
-	}
-
-	f_unmount("0:");
 }
