@@ -1,4 +1,3 @@
-#include <hardware/spi.h>
 extern "C" {
 #include "lauxlib.h"
 #include "lua.h"
@@ -6,6 +5,7 @@ extern "C" {
 }
 
 #include <hardware/regs/dreq.h>
+#include <hardware/spi.h>
 #include <pico/stdio.h>
 #include <pico/stdio_usb.h>
 #include <pico/time.h>
@@ -40,8 +40,6 @@ int range = 3;
 int mark = 0;
 int skip = 0;
 
-void run_game() {}
-
 void menu(pico_ssd1306::SSD1306 &display)
 {
 	if (range > ARRAY_LENGTH(games)) {
@@ -50,7 +48,7 @@ void menu(pico_ssd1306::SSD1306 &display)
 
 	display.clear();
 
-	if (gpio_get(R_ARROW) == 0) {
+	if (gpio_get(R_ARROW) == 0 && mark != file_count - 1) {
 		if (mark < file_count) {
 			mark++;
 			mark_y += 22;
@@ -84,15 +82,16 @@ void menu(pico_ssd1306::SSD1306 &display)
 	if (gpio_get(MOD_BTN) == 0) {
 		printf("GPIO_MOD_BTN: %d\n", gpio_get(MOD_BTN));
 		printf("Start: %s\n", games[mark]);
-		read_sd_file((char *)"test.txt", l_test);
+		read_sd_file((char *)games[mark], l_test);
 		printf("ltest: %s\n", l_test);
 
 		while (1) {
 			display.clear();
 
-		if (luaL_loadbuffer(L, l_test, strlen(l_test), "test") == LUA_OK) {
-			lua_pcall(L, 0, 0, 0);
-		}
+			if (luaL_loadbuffer(L, l_test, strlen(l_test),
+			                    "game") == LUA_OK) {
+				lua_pcall(L, 0, 0, 0);
+			}
 
 			display.sendBuffer();
 
@@ -123,7 +122,6 @@ void menu(pico_ssd1306::SSD1306 &display)
 
 int main(void)
 {
-
 	stdio_init_all();
 	sleep_ms(2000);
 	while (!stdio_usb_connected()) {
@@ -134,18 +132,13 @@ int main(void)
 
 	init_sd_card();
 	parse_sd_dir(games, &file_count);
-	read_sd_file("test.txt", l_test);
 	sleep_ms(1000);
 
-	for (int i = 0; i < file_count; i++) {
-		printf("stored: %s\n", games[i]);
-	}
-
 	i2c_init(i2c0, 1000000);
-	gpio_set_function(21, GPIO_FUNC_I2C);
-	gpio_set_function(20, GPIO_FUNC_I2C);
-	gpio_pull_up(21);
-	gpio_pull_up(20);
+	gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+	gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+	gpio_pull_up(I2C_SCL);
+	gpio_pull_up(I2C_SDA);
 
 	SSD1306 display = SSD1306(i2c0, 0x3C, Size::W128xH64);
 	display.clear();
@@ -171,17 +164,6 @@ int main(void)
 	reg_macros(L);
 
 	while (1) {
-		// display.clear();
-		// if (luaL_loadbuffer(L, l_test, strlen(l_test), "test") !=
-		//     LUA_OK) {
-		// 	printf("LUA ERROR: %s\n", lua_tostring(L, -1));
-		// }
-		//
-		// lua_pcall(L, 0, 0, 0);
-		//
-		// display.sendBuffer();
-		//
-		// sleep_ms(16);
 		menu(display);
 	}
 }
