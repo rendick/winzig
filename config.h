@@ -5,6 +5,9 @@
 #define L_ARROW 14
 #define R_ARROW 15
 
+#define I2C_SCL 21
+#define I2C_SDA 20
+
 #define BALL_SIZE     1
 #define RACKET_HEIGHT 1
 
